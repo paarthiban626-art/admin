@@ -111,6 +111,11 @@
             }
         }
 
+        .actions-group {
+            display: flex;
+            gap: 10px;
+        }
+
         .kill-btn {
             background-color: #220000;
             color: var(--error-red);
@@ -124,7 +129,20 @@
             box-shadow: 0 0 10px var(--error-red);
         }
 
-        /* Cards Layout for perfect PC & Mobile compatibility */
+        .purge-btn {
+            background-color: #331a00;
+            color: #ff9900;
+            border-color: #ff9900;
+            padding: 8px 20px;
+            width: auto;
+        }
+        .purge-btn:hover {
+            background-color: #ff9900;
+            color: #000;
+            box-shadow: 0 0 10px #ff9900;
+        }
+
+        /* Cards Layout */
         .data-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -194,7 +212,10 @@
         <div id="dashboard-screen" class="hidden">
             <div class="banner">
                 <div class="terminal-header">RAW_DATABASE_INJECTION // STREAMING<span class="blink">_</span></div>
-                <button id="logout-btn" class="kill-btn">CLOSE_STREAM</button>
+                <div class="actions-group">
+                    <button id="purge-btn" class="purge-btn">PURGE_DATABASE</button>
+                    <button id="logout-btn" class="kill-btn">CLOSE_STREAM</button>
+                </div>
             </div>
 
             <div id="db-error" class="error-msg hidden"></div>
@@ -207,7 +228,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_8BED9BePH6zcGDjk1oxyDgG6wlzLBTc",
@@ -221,6 +242,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const SECRET_PASSKEY = "Admin$Panel";
+        const TARGET_COLLECTION = "credentials"; 
 
         const loginScreen = document.getElementById('login-screen');
         const dashboardScreen = document.getElementById('dashboard-screen');
@@ -259,12 +281,45 @@
             location.reload();
         });
 
+        // Trigger database deletion routine
+        document.getElementById('purge-btn').addEventListener('click', async () => {
+            const confirmation = confirm("CRITICAL OPERATION: Are you absolutely sure you want to completely WIPE out all user data documents from Firebase?");
+            if (!confirmation) return;
+
+            dataGridOutput.innerHTML = '<div style="color: #ff9900;">[INITIALIZING DATABASE PURGE PROCESS...]</div>';
+            dbError.classList.add('hidden');
+
+            try {
+                const querySnapshot = await getDocs(collection(db, TARGET_COLLECTION));
+                
+                if (querySnapshot.empty) {
+                    alert("Purge terminated. Target collection is already empty.");
+                    streamAllData();
+                    return;
+                }
+
+                // Loop through all documents and execute deletions individually 
+                const deletionPromises = [];
+                querySnapshot.forEach((documentRef) => {
+                    const docToDelete = doc(db, TARGET_COLLECTION, documentRef.id);
+                    deletionPromises.push(deleteDoc(docToDelete));
+                });
+
+                await Promise.all(deletionPromises);
+                alert("SUCCESS: All collection records have been wiped out from Firebase.");
+                streamAllData();
+
+            } catch (error) {
+                console.error(error);
+                dbError.textContent = "!! PURGE EXCEPTION FAILED: " + error.message.toUpperCase() + " !!";
+                dbError.classList.remove('hidden');
+                streamAllData();
+            }
+        });
+
         async function streamAllData() {
             dbError.classList.add('hidden');
             dataGridOutput.innerHTML = '';
-            
-            // Fixed to look at your exact collection from the screenshot
-            const TARGET_COLLECTION = "credentials"; 
 
             try {
                 const querySnapshot = await getDocs(collection(db, TARGET_COLLECTION));
